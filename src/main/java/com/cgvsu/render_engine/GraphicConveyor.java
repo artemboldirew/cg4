@@ -50,7 +50,7 @@ public class GraphicConveyor {
                 {0, 0, 0, 1}
         });
 
-        return T.multiply(Rz.multiply(Ry.multiply(Rx.multiply(S))));
+        return T.mul(Rz.mul(Ry.mul(Rx.mul(S))));
     }
 
     public static Matrix4f getViewMatrix(Camera camera) {
@@ -58,7 +58,7 @@ public class GraphicConveyor {
         Vector3f target = camera.getTarget();
         Vector3f eye = camera.getPosition();
 
-        Vector3f z = eye.subtract(target).normalize();
+        Vector3f z = eye.sub(target).normalize();
         Vector3f x = up.cross(z).normalize();
         Vector3f y = z.cross(x);
 

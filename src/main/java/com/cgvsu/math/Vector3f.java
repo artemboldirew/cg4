@@ -1,96 +1,132 @@
 package com.cgvsu.math;
 
+import java.util.Objects;
+
 public class Vector3f {
-    private static final int n = 3;
-    private static final int m = 1;
-    private float[][] vector;
+    private float[] vector = new float[3];
+
+    public Vector3f(float[] initialMatrix) {
+        setVector(initialMatrix);
+    }
 
     public Vector3f(float x, float y, float z) {
-        this.vector = new float[][]{{x}, {y}, {z}};
+        setVector(new float[]{x, y, z});
     }
 
-    public Vector3f(float[][] initialMatrix) {
-        MathUtil.checkArray(initialMatrix, n, m);
-        this.vector = initialMatrix;
+    public Vector3f(Vector3f vec) {
+        setVector(vec.vector);
     }
 
-    public Vector3f multiply(float num) {
-        MathUtil.checkArray(this.vector, n, m);
-        return new Vector3f(MathUtil.multiplyByNum(getVector(), num));
+    public Vector3f mulInPlace(float num) {
+        MathUtil.vectorMultiplyByScalarInPlace(this.vector, num);
+        return this;
     }
 
-    public Vector3f divide(float num) {
-        MathUtil.checkArray(this.vector, n, m);
-        return new Vector3f(MathUtil.divideByNum(getVector(), num));
+    public Vector3f mul(float num) {
+        float[] arr = MathUtil.vectorMultiplyByScalar(this.vector, num);
+        return new Vector3f(arr);
+    }
+
+    public Vector3f div(float num) {
+        float[] arr = MathUtil.vectorDivideByScalar(this.vector, num);
+        return new Vector3f(arr);
+    }
+
+    public Vector3f divInPlace(float num) {
+        MathUtil.vectorDivideByScalarInPlace(this.vector, num);
+        return this;
+    }
+
+    public Vector3f addInPlace(Vector3f vec) {
+        MathUtil.vectorAddInPlace(this.vector, vec.vector);
+        return this;
     }
 
     public Vector3f add(Vector3f vec) {
-        MathUtil.checkArray(this.vector, n, m);
-        return new Vector3f(MathUtil.addArrays(getVector(), vec.getVector()));
+        float[] arr = MathUtil.vectorAdd(this.vector, vec.vector);
+        return new Vector3f(arr);
     }
 
+    public Vector3f subInPlace(Vector3f vec) {
+        MathUtil.vectorSubtractInPlace(this.vector, vec.vector);
+        return this;
+    }
 
-    public Vector3f subtract(Vector3f vec) {
-        return new Vector3f(MathUtil.substractArrays(getVector(), vec.getVector()));
+    public Vector3f sub(Vector3f vec) {
+        float[] arr = MathUtil.vectorSubtract(this.vector, vec.vector);
+        return new Vector3f(arr);
     }
 
     public float getLength() {
-        return (float) Math.pow(Math.pow(vector[0][0], 2) + Math.pow(vector[1][0], 2) + Math.pow(vector[2][0], 2) ,0.5);
+        float x = vector[0];
+        float y = vector[1];
+        float z = vector[2];
+        return (float) Math.sqrt(x * x + y * y + z * z);
     }
 
     public Vector3f normalize() {
         float len = getLength();
-        this.vector[0][0] /= len;
-        this.vector[1][0] /= len;
-        this.vector[2][0] /= len;
+        if (MathUtil.floatEquals(len, 0.0f)) {
+            return this;
+        }
+        this.vector[0] /= len;
+        this.vector[1] /= len;
+        this.vector[2] /= len;
         return this;
     }
 
-
     public float dot(Vector3f vec) {
-        MathUtil.checkArray(vec.getVector(), n, m);
-        return MathUtil.scalarArrayProduct(this.vector, vec.getVector());
+        return MathUtil.vectorScalarProduct(this.vector, vec.vector);
     }
 
     public Vector3f cross(Vector3f vec) {
-        float[] first = new float[]{this.vector[0][0], this.vector[1][0], this.vector[2][0]};
-        float[] second = new float[]{vec.vector[0][0], vec.vector[1][0], vec.vector[2][0]};
-        float[][] resVector = new float[3][1];
-        resVector[0][0] = first[1]*second[2] - first[2]*second[1];
-        resVector[1][0] = first[2]*second[0] - first[0]*second[2];
-        resVector[2][0] = first[0]*second[1] - first[1]*second[0];
+        float x1 = this.vector[0];
+        float y1 = this.vector[1];
+        float z1 = this.vector[2];
 
-        return new Vector3f(resVector);
-    }
+        float x2 = vec.vector[0];
+        float y2 = vec.vector[1];
+        float z2 = vec.vector[2];
 
-    public Vector4f to4f() {
-        return new Vector4f(new float[][] {{getX()} ,{getY()}, {getZ()}, {1}});
-    }
+        float[] result = new float[3];
+        result[0] = y1 * z2 - z1 * y2;
+        result[1] = z1 * x2 - x1 * z2;
+        result[2] = x1 * y2 - y1 * x2;
 
-
-
-    public float[][] getVector() {
-        return new float[][] {{getX()} ,{getY()}, {getZ()}};
+        return new Vector3f(result);
     }
 
     public float getX() {
-        if (vector != null) {
-            return vector[0][0];
-        }
-        throw new RuntimeException("Вектор пуст");
+        return vector[0];
     }
 
     public float getY() {
-        if (vector != null) {
-            return vector[1][0];
-        }
-        throw new RuntimeException("Вектор пуст");
+        return vector[1];
     }
 
     public float getZ() {
-        if (vector != null) {
-            return vector[2][0];
+        return vector[2];
+    }
+
+    public float[] getVector() {
+        float[] copy = new float[3];
+        copy[0] = vector[0];
+        copy[1] = vector[1];
+        copy[2] = vector[2];
+        return copy;
+    }
+
+    public void setVector(float[] mat) {
+        Objects.requireNonNull(mat, "Матрица не может быть null");
+        if (mat.length != 3) {
+            throw new IllegalArgumentException("Вектор должен иметь размерность 3");
         }
-        throw new RuntimeException("Вектор пуст");
+        vector[0] = mat[0];
+        vector[1] = mat[1];
+        vector[2] = mat[2];
+    }
+
+    public Vector4f to4f() {
+        return new Vector4f(getX(), getY(), getZ(), 1);
     }
 }

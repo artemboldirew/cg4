@@ -24,7 +24,7 @@ public class RenderEngine {
         Matrix4f projectionMatrix = GraphicConveyor.getProjectionMatrix(camera);
 
 
-        Matrix4f mvp = projectionMatrix.multiply(viewMatrix).multiply(modelMatrix);
+        Matrix4f mvp = projectionMatrix.mul(viewMatrix).mul(modelMatrix);
 
         final int nPolygons = mesh.polygons.size();
         for (int polygonInd = 0; polygonInd < nPolygons; ++polygonInd) {
@@ -34,7 +34,7 @@ public class RenderEngine {
             for (int vertexInPolygonInd = 0; vertexInPolygonInd < nVerticesInPolygon; ++vertexInPolygonInd) {
                 Vector3f vertex = mesh.vertices.get(mesh.polygons.get(polygonInd).getVertexIndices().get(vertexInPolygonInd));
                 Vector4f vec4 = new Vector3f(vertex.getVector()).to4f();
-                Vector4f afterAll = mvp.multiply(vec4);
+                Vector4f afterAll = mvp.mul(vec4);
 
                 Point2f resultPoint = vertexToPoint(afterAll.ndc(), width, height);
                 resultPoints.add(resultPoint);

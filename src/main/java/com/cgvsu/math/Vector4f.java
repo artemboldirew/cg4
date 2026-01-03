@@ -122,7 +122,8 @@ public class Vector4f {
     public Vector3f ndc() {
         float w = vector[3];
         if (MathUtil.floatEquals(w, 0.0f)) {
-            return new Vector3f(getVector());
+            System.out.println("gg ndc");
+            return new Vector3f(getX(), getY(), getZ());
         }
 
         float[] ndcArray = new float[3];
@@ -135,7 +136,7 @@ public class Vector4f {
 
     public Vector4f ndcInPlace() {
         float w = vector[3];
-        if (w == 0.0f) {
+        if (MathUtil.floatEquals(w, 0.0f)) {
             throw new RuntimeException("W = 0, приведение к ndc невозможно");
         }
 
@@ -147,23 +148,6 @@ public class Vector4f {
         return this;
     }
 
-    public Vector3f ndcAndModify() {
-        float w = vector[3];
-        if (w == 0.0f) {
-            throw new RuntimeException("W = 0, приведение к ndc невозможно");
-        }
-
-        float[] ndcArray = new float[3];
-        ndcArray[0] = vector[0] / w;
-        ndcArray[1] = vector[1] / w;
-        ndcArray[2] = vector[2] / w;
-
-        this.vector[0] = ndcArray[0];
-        this.vector[1] = ndcArray[1];
-        this.vector[2] = ndcArray[2];
-
-        return new Vector3f(ndcArray);
-    }
 
     public void setVector(float[] mat) {
         Objects.requireNonNull(mat, "Матрица не может быть null");

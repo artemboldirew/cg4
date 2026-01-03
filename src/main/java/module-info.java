@@ -1,7 +1,7 @@
 module com.cgvsu {
     requires javafx.controls;
     requires javafx.fxml;
-    requires java.desktop;
+    requires tools.jackson.databind;
 
 
     opens com.cgvsu to javafx.fxml;

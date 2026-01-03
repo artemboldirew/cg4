@@ -129,4 +129,12 @@ public class Vector3f {
     public Vector4f to4f() {
         return new Vector4f(getX(), getY(), getZ(), 1);
     }
+
+    public boolean isBetweenNAndF() {
+        return ((vector[0] > -1 && vector[0] < 1) && (vector[1] > -1 && vector[1] < 1) && (vector[2] > -1 && vector[2] < 1));
+    }
+
+    public Vector3f negate() {
+        return new Vector3f(-getX(), -getY(), getZ());
+    }
 }

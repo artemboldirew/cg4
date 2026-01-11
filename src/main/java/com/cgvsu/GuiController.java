@@ -88,7 +88,7 @@ public class GuiController {
             float width = (float) canvas.getWidth();
             float height = (float) canvas.getHeight();
 
-            camera.zoomToCursor(zoomDelta, mouseX, mouseY, width, height);
+            camera.zoomToCursor(zoomDelta);
         });
 
         canvas.setOnMousePressed(e -> {

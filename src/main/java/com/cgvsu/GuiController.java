@@ -113,7 +113,7 @@ public class GuiController {
                 double deltaY = e.getSceneY() - dragStartY;
                 dragStartX = e.getSceneX();
                 dragStartY = e.getSceneY();
-                onWheelDragged(deltaX, deltaY, e);
+                camera.translateCamera((float) deltaX, (float) deltaY, (float) canvas.getWidth(), (float) canvas.getHeight());
             } else if (isRightDragging) {
                 double deltaX = e.getSceneX() - dragStartX;
                 double deltaY = e.getSceneY() - dragStartY;
@@ -126,7 +126,6 @@ public class GuiController {
         canvas.setOnMouseReleased(e -> {
             if (e.getButton() == MouseButton.MIDDLE && isDragging) {
                 isDragging = false;
-                onWheelDragEnded(e);
                 e.consume();
             } else if (e.getButton() == MouseButton.SECONDARY && isRightDragging) {
                 isRightDragging = false;
@@ -135,13 +134,7 @@ public class GuiController {
         });
     }
 
-    protected void onWheelDragged(double deltaX, double deltaY, MouseEvent event) {
-        //Matrix4f mat = GraphicConveyor.getModelMatrix(1,1,1, (float) deltaX, 50, 0, 0, 0, 0);
-    }
 
-    protected void onWheelDragEnded(MouseEvent event) {
-        System.out.println("Drag ended");
-    }
 
     @FXML
     private void onOpenModelMenuItemClick() {

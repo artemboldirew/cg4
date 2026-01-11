@@ -199,6 +199,19 @@ public class Camera {
     }
 
 
+    public void translateCamera(float deltaX, float deltaY, float width, float height) {
+        Vector3f forward = target.sub(position).normalize();
+        Vector3f right = forward.cross(up).normalize();
+        Vector3f cameraUp = right.cross(forward).normalize();
+
+        float panSpeed = 0.1f;
+        Vector3f panVector = right.mul(-deltaX * panSpeed)
+                .add(cameraUp.mul(deltaY * panSpeed));
+        position = position.add(panVector);
+
+        target = position.add(forward.mul(1));
+    }
+
 
 
 

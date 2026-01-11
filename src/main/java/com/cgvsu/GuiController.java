@@ -6,6 +6,7 @@ import com.cgvsu.model.Model;
 import com.cgvsu.objreader.ObjReader;
 import com.cgvsu.render_engine.Camera;
 import com.cgvsu.render_engine.GraphicConveyor;
+import com.cgvsu.render_engine.Placement;
 import com.cgvsu.render_engine.RenderEngine;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -59,6 +60,7 @@ public class GuiController {
 
         timeline = new Timeline();
         timeline.setCycleCount(Animation.INDEFINITE);
+        Placement placement = new Placement(1, 1, 1, 0, 0, 0, 0, 0, 0);
 
         KeyFrame frame = new KeyFrame(Duration.millis(15), event -> {
             double width = canvas.getWidth();
@@ -68,7 +70,7 @@ public class GuiController {
             camera.setAspectRatio((float) (width / height));
             RenderEngine.renderAxes(canvas.getGraphicsContext2D(), camera, (int) width, (int) height);
             if (mesh != null) {
-                RenderEngine.render(canvas.getGraphicsContext2D(), camera, mesh, (int) width, (int) height);
+                RenderEngine.render(canvas.getGraphicsContext2D(), camera, mesh, (int) width, (int) height, placement);
             }
 
         });
@@ -88,7 +90,7 @@ public class GuiController {
             float width = (float) canvas.getWidth();
             float height = (float) canvas.getHeight();
 
-            camera.zoomToCursor(zoomDelta);
+            camera.zoomToCursor(zoomDelta, mouseX, mouseY, width, height);
         });
 
         canvas.setOnMousePressed(e -> {
@@ -134,7 +136,7 @@ public class GuiController {
     }
 
     protected void onWheelDragged(double deltaX, double deltaY, MouseEvent event) {
-        Matrix4f mat = GraphicConveyor.getModelMatrix(1,1,1, (float) deltaX, 50, 0, 0, 0, 0);
+        //Matrix4f mat = GraphicConveyor.getModelMatrix(1,1,1, (float) deltaX, 50, 0, 0, 0, 0);
     }
 
     protected void onWheelDragEnded(MouseEvent event) {

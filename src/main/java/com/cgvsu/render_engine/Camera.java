@@ -1,13 +1,9 @@
 package com.cgvsu.render_engine;
 
 
-import com.cgvsu.math.MathUtil;
 import com.cgvsu.math.Matrix4f;
 import com.cgvsu.math.Quaternion;
-import com.cgvsu.math.Quaternionf;
-import com.cgvsu.math.Vector2f;
 import com.cgvsu.math.Vector3f;
-import com.cgvsu.math.Vector4f;
 
 public class Camera {
     private Vector3f up;
@@ -107,83 +103,101 @@ public class Camera {
         this.up = up.normalize();
     }
 
-    public void zoomToCursor(float zoomDelta) {
-        // Получаем текущее направление взгляда камеры
-        Vector3f forward = target.sub(position).normalize();
-        float currentDistance = target.sub(position).getLength();
-        float minDistance = 1.0f; // Минимальное расстояние до цели
 
-        // Проверяем, не подходим ли слишком близко
+
+    public void zoomToCursor(float zoomDelta, float mouseX, float mouseY,
+                             float screenWidth, float screenHeight) {
+        // Нормализованные координаты курсора от -1 до 1
+        float normalizedX = (2.0f * mouseX) / screenWidth - 1.0f;
+        float normalizedY = 1.0f - (2.0f * mouseY) / screenHeight; // Инвертируем Y
+
+        // Направление взгляда камеры
+        Vector3f forward = target.sub(position).normalize();
+        Vector3f right = forward.cross(up).normalize(); // Используем up камеры, а не мировой
+        Vector3f cameraUp = right.cross(forward).normalize();
+
+        // Точка, на которую смотрит курсор в плоскости фокуса
+        float focusDistance = target.sub(position).getLength();
+        Vector3f cursorWorldPoint = target
+                .add(right.mul(normalizedX * focusDistance)) // Горизонтальное смещение
+                .add(cameraUp.mul(normalizedY * focusDistance)); // Вертикальное смещение
+
+        // Направление от камеры к точке под курсором
+        Vector3f toCursor = cursorWorldPoint.sub(position).normalize();
+
+        float currentDistance = target.sub(position).getLength();
+        float minDistance = 1.0f;
+
         if (currentDistance - zoomDelta < minDistance) {
             zoomDelta = currentDistance - minDistance;
-            if (zoomDelta < 0.001f) return; // Слишком маленькое изменение - игнорируем
+            if (zoomDelta < 0.001f) return;
         }
 
-        // Двигаем камеру прямо по направлению взгляда
-        position = position.add(forward.mul(zoomDelta));
+        // Двигаем камеру к точке под курсором
+        position = position.add(toCursor.mul(zoomDelta));
 
-        // Обновляем расстояние до цели (хотя оно должно оставаться прежним)
-        // На всякий случай корректируем целевую точку, сохраняя направление
-//        float distanceAfterZoom = target.sub(position).getLength();
-//        if (Math.abs(distanceAfterZoom - currentDistance) > 0.001f) {
-//            target = position.add(forward.mul(currentDistance));
-//        }
+        // Target также двигаем к той же точке под курсором
+        // чтобы сохранить фокус на том же объекте
+        target = target.add(toCursor.mul(zoomDelta));
     }
-
-
 
 
 
     public void rotateAroundTarget(float deltaX, float deltaY) {
-        Vector3f offset = position.sub(target);
-        float distance = offset.getLength();
+        Vector3f pivot = new Vector3f(0, 0, 0);
 
-        if (distance < 0.0001f) return;
+        // 1. Вычисляем текущие экранные координаты pivot (origin) в системе камеры
+        Vector3f toPivot = pivot.sub(position).normalize();
 
+        // Разлагаем toPivot на компоненты в системе камеры
         Vector3f forward = target.sub(position).normalize();
-        Vector3f currentRight = forward.cross(up).normalize();
+        Vector3f right = forward.cross(up).normalize();
+        Vector3f cameraUp = right.cross(forward).normalize();
 
-        if (currentRight.getLength() < 0.01f) {
-            Vector3f worldUp = new Vector3f(0, 1, 0);
-            currentRight = forward.cross(worldUp).normalize();
+        // Проекции toPivot на оси камеры
+        float pivotRight = toPivot.dot(right);
+        float pivotUp = toPivot.dot(cameraUp);
+        float pivotForward = toPivot.dot(forward);
 
-            if (currentRight.getLength() < 0.01f) {
-                Vector3f alternativeUp = new Vector3f(0, 0, 1);
-                currentRight = forward.cross(alternativeUp).normalize();
-            }
-
-            up = currentRight.cross(forward).normalize();
-        }
-
-        Quaternion rotation = Quaternion.identity();
+        // 2. Применяем вращение камеры вокруг своей позиции
         float sensitivity = 0.005f;
+        Quaternion rotation = Quaternion.identity();
 
         if (Math.abs(deltaX) > 0.0001f) {
-            Quaternion yawRot = Quaternion.fromAxisAngle(up, -deltaX * sensitivity);
-            rotation = yawRot.multiply(rotation);
+            rotation = Quaternion.fromAxisAngle(up, -deltaX * sensitivity).multiply(rotation);
         }
-
         if (Math.abs(deltaY) > 0.0001f) {
-            Quaternion pitchRot = Quaternion.fromAxisAngle(currentRight, -deltaY * sensitivity);
-            rotation = pitchRot.multiply(rotation);
+            rotation = Quaternion.fromAxisAngle(right, -deltaY * sensitivity).multiply(rotation);
         }
 
-        Vector3f rotatedOffset = rotation.rotateVector(offset);
-        rotatedOffset.normalize().mulInPlace(distance);
+        // Поворачиваем оси камеры
+        Vector3f newForward = rotation.rotateVector(forward).normalize();
+        Vector3f newUp = rotation.rotateVector(up).normalize();
+        Vector3f newRight = newForward.cross(newUp).normalize();
 
-        position = target.add(rotatedOffset);
+        // 3. Пересчитываем up, чтобы система была ортогональной
+        newUp = newRight.cross(newForward).normalize();
 
-        forward = target.sub(position).normalize();
-        currentRight = forward.cross(up).normalize();
+        // 4. Вычисляем новую позицию камеры
+        Vector3f desiredToPivotDir =
+                newRight.mul(pivotRight)
+                        .add(newUp.mul(pivotUp))
+                        .add(newForward.mul(pivotForward))
+                        .normalize();
 
-        if (currentRight.getLength() < 0.01f) {
-            Vector3f worldUp = new Vector3f(0, 1, 0);
-            currentRight = forward.cross(worldUp).normalize();
-        }
+        // Расстояние до origin (0,0,0)
+        float distanceToOrigin = position.getLength(); // position - (0,0,0) = position
 
-        Vector3f newUp = currentRight.cross(forward).normalize();
+        // Новая позиция камеры: из origin отступаем на расстояние в обратном направлении
+        position = desiredToPivotDir.mul(-distanceToOrigin); // pivot.sub(dir * distance) = -dir * distance
+
+        // Обновляем target: смотрим в том же направлении
+        target = position.add(newForward.mul(distanceToOrigin));
+
+        // Обновляем up
         up = newUp;
     }
+
 
 
 

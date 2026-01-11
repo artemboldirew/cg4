@@ -17,10 +17,10 @@ public class RenderEngine {
             final Camera camera,
             final Model mesh,
             final int width,
-            final int height)
+            final int height, Placement placement)
     {
 
-        Matrix4f modelMatrix = GraphicConveyor.getModelMatrix(1,1,1, 0, 0, 0, 0, 0, 0);
+        Matrix4f modelMatrix = GraphicConveyor.getModelMatrix(placement);
         Matrix4f viewMatrix = GraphicConveyor.getViewMatrix(camera);
         Matrix4f projectionMatrix = GraphicConveyor.getProjectionMatrix(camera);
 
